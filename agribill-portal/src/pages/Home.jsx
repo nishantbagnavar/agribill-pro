@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Leaf, ArrowRight, Phone } from 'lucide-react';
 
-const SUPPORT_PHONE = import.meta.env.VITE_SUPPORT_PHONE || '9876543210';
+const SUPPORT_PHONE = import.meta.env.VITE_SUPPORT_PHONE || '9545886312';
 
 export default function Home() {
   const navigate = useNavigate();

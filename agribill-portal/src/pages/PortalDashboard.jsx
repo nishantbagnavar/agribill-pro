@@ -8,8 +8,8 @@ import {
 import { fetchShopByKey, selfResetHWID } from '../lib/supabase.js';
 import toast from 'react-hot-toast';
 
-const SUPPORT_PHONE = import.meta.env.VITE_SUPPORT_PHONE || '9876543210';
-const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL || 'support@agribill.in';
+const SUPPORT_PHONE = import.meta.env.VITE_SUPPORT_PHONE || '9545886312';
+const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL || 'bagnavarnishant@gmail.com';
 
 const FEATURE_LABELS = {
   billing: 'Billing',
