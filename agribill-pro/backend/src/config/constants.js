@@ -1,0 +1,23 @@
+const GST_RATES = [0, 5, 12, 18, 28];
+
+const UNITS = ['kg', 'litre', 'bag', 'bottle', 'piece', 'gram', 'ml', 'packet'];
+
+const PAYMENT_METHODS = ['CASH', 'UPI', 'CARD', 'CHEQUE', 'CREDIT'];
+
+const TRANSACTION_TYPES = ['IN', 'OUT', 'ADJUSTMENT', 'RETURN'];
+
+const NOTIFICATION_TYPES = ['LOW_STOCK', 'EXPIRY', 'DUE_PAYMENT'];
+
+const DEFAULT_LOW_STOCK_THRESHOLD = 5;
+
+const DEFAULT_EXPIRY_REMINDER_DAYS = 30;
+
+module.exports = {
+  GST_RATES,
+  UNITS,
+  PAYMENT_METHODS,
+  TRANSACTION_TYPES,
+  NOTIFICATION_TYPES,
+  DEFAULT_LOW_STOCK_THRESHOLD,
+  DEFAULT_EXPIRY_REMINDER_DAYS,
+};

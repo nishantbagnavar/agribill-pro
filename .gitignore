@@ -1,0 +1,69 @@
+# ─── Dependencies ───────────────────────────────────────────────
+node_modules/
+
+# ─── Environment & Secrets (NEVER commit real .env files) ───────
+.env
+.env.local
+.env.production
+.env.*.local
+# Keep .env.example files — they are safe templates
+!.env.example
+# Also ignore the env file bundled in installer assets
+agribill-pro/installer/assets/env.production
+
+# ─── Databases & Data ───────────────────────────────────────────
+*.db
+*.db-shm
+*.db-wal
+agribill-pro/data/
+agribill-pro/backend/data/
+agribill-pro/backend/src/config/sqlite.db
+
+# ─── Build Outputs ──────────────────────────────────────────────
+dist/
+build/
+agribill-pro/backend/public/
+
+# ─── Installer Binaries (too large / platform-specific) ─────────
+agribill-pro/installer/assets/node/
+agribill-pro/installer/assets/nssm/
+agribill-pro/installer/output/
+
+# ─── WhatsApp Session Data ──────────────────────────────────────
+agribill-pro/.wwebjs_cache/
+agribill-pro/backend/wa-session/
+agribill-pro/backend/backend/
+agribill-pro/wa-session/
+**/wa-session/
+
+# ─── Uploads (user-generated files) ─────────────────────────────
+agribill-pro/uploads/
+
+# ─── Logs ───────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+
+# ─── Vercel Deployment Cache ─────────────────────────────────────
+.vercel/
+
+# ─── OS & Editor Files ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+.vscode/settings.json
+
+# ─── Internal Planning / AI Session Docs ────────────────────────
+00_START_HERE.md
+01_TOKEN_SAVER.md
+02_EXECUTION_PLAN.md
+03_SESSION_PROMPTS.md
+04_UIUX_GUIDE.md
+05_BUILD_LOG.md
+AgriBillPro_MasterPrompt.md
+IMPLEMENTATION_PLAN.md
+agribill-pro/CLAUDE.md
+agribill-pro/TEST_RESULTS.md

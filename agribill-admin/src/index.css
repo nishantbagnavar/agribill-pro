@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans', sans-serif;
+    background: #F0F4F2;
+    color: #1a1a1a;
+  }
+  h1, h2, h3, h4, h5, h6, button {
+    font-family: 'Sora', sans-serif;
+  }
+}
