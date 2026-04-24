@@ -27,6 +27,7 @@ export default function Topbar({ waConnected, onMobileMenuToggle, isMobile }) {
     '/reminders': 'nav.reminders',
     '/whatsapp':  'nav.whatsapp',
     '/settings':  'nav.settings',
+    '/reports':   'nav.reports',
   };
 
   const titleKey = Object.entries(PAGE_TITLE_KEYS).find(([path]) =>
@@ -69,7 +70,7 @@ export default function Topbar({ waConnected, onMobileMenuToggle, isMobile }) {
         height: 'var(--topbar-height)',
         background: 'var(--surface-topbar)',
         borderBottom: '1px solid var(--gray-200)',
-        left: 'var(--sidebar-current-width, 260px)',
+        left: isMobile ? '0px' : 'var(--sidebar-current-width, 260px)',
         transition: 'left 0.3s',
       }}
     >

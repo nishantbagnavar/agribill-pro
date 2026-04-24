@@ -339,32 +339,49 @@ export default function Dashboard() {
           {catLoading ? (
             <Skeleton style={{ height: 200 }} />
           ) : catData?.length ? (
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={catData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  dataKey="value"
-                  nameKey="name"
-                  paddingAngle={3}
-                >
-                  {catData.map((_, i) => (
-                    <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(v) => formatCurrency(v)}
-                  contentStyle={{ fontSize: 11, fontFamily: 'JetBrains Mono' }}
-                />
-                <Legend
-                  iconSize={8}
-                  wrapperStyle={{ fontSize: 10, fontFamily: 'Noto Sans' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            <>
+              <ResponsiveContainer width="100%" height={180}>
+                <PieChart>
+                  <Pie
+                    data={catData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={46}
+                    outerRadius={76}
+                    dataKey="value"
+                    nameKey="name"
+                    paddingAngle={2}
+                    minAngle={5}
+                    isAnimationActive={true}
+                  >
+                    {catData.map((_, i) => (
+                      <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(v, name) => [formatCurrency(v), name]}
+                    contentStyle={{ fontSize: 11, fontFamily: 'JetBrains Mono', borderRadius: 8 }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              {/* Custom legend — more reliable than Recharts Legend inside ResponsiveContainer */}
+              <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                {(() => {
+                  const total = catData.reduce((s, d) => s + d.value, 0);
+                  return catData.map((d, i) => (
+                    <div key={d.name} className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
+                      <span className="font-body text-[10px] truncate max-w-[80px]" style={{ color: 'var(--gray-600)' }} title={d.name}>
+                        {d.name.length > 12 ? d.name.slice(0, 11) + '…' : d.name}
+                      </span>
+                      <span className="font-mono text-[10px]" style={{ color: 'var(--gray-400)' }}>
+                        {total > 0 ? Math.round((d.value / total) * 100) : 0}%
+                      </span>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </>
           ) : (
             <div className="h-48 flex flex-col items-center justify-center gap-2">
               <Package size={32} style={{ color: 'var(--gray-300)' }} />

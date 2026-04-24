@@ -1,8 +1,10 @@
 const router = require('express').Router();
 const { verifyToken } = require('../auth/auth.middleware');
+const { requireFeature } = require('../license/feature.middleware');
 const wa = require('./whatsapp.service');
 
 router.use(verifyToken);
+router.use(requireFeature('whatsapp'));
 
 router.get('/status', (req, res, next) => {
   try { res.json({ success: true, data: wa.getStatus() }); }

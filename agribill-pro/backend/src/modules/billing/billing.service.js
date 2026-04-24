@@ -1,5 +1,6 @@
 const { sqlite } = require('../../config/db');
 const { generateBillPDF } = require('./pdf.generator');
+const { generateThermalPDF } = require('./thermal.generator');
 const { NotFoundError } = require('../../utils/errors');
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -103,7 +104,6 @@ const getById = (id) => {
 
 const create = (data, userId) => {
   const shop = getShop();
-  const billNumber = data.bill_number || getNextBillNumber();
 
   const calcedItems = data.items.map(calcItem);
   const subtotal = calcedItems.reduce((s, i) => s + i.rate * i.quantity, 0);
@@ -112,7 +112,8 @@ const create = (data, userId) => {
   const cgstAmount = calcedItems.reduce((s, i) => s + i.cgst, 0);
   const sgstAmount = calcedItems.reduce((s, i) => s + i.sgst, 0);
   const totalAmount = taxableAmount + cgstAmount + sgstAmount;
-  const paidAmount = data.paid_amount || (data.payment_method !== 'CREDIT' ? totalAmount : 0);
+  // null = blank (assume fully paid), 0 = explicitly not paid, >0 = partial
+  const paidAmount = data.paid_amount != null ? data.paid_amount : (data.payment_method !== 'CREDIT' ? totalAmount : 0);
   const dueAmount = totalAmount - paidAmount;
   const paymentStatus = dueAmount <= 0 ? 'PAID' : paidAmount > 0 ? 'PARTIAL' : 'UNPAID';
 
@@ -133,6 +134,11 @@ const create = (data, userId) => {
         }
       }
     }
+
+    // Generate bill number atomically (counter increment + number generation inside transaction)
+    sqlite.prepare('UPDATE shop_profile SET invoice_counter = invoice_counter + 1').run();
+    const freshShop = sqlite.prepare('SELECT invoice_prefix, invoice_counter FROM shop_profile LIMIT 1').get();
+    const billNumber = `${freshShop.invoice_prefix || 'AGR'}-${new Date().getFullYear()}-${String(freshShop.invoice_counter).padStart(4, '0')}`;
 
     // Insert bill
     const billResult = sqlite.prepare(`
@@ -221,9 +227,6 @@ const create = (data, userId) => {
       `).run(totalAmount, dueAmount, data.customer_id);
     }
 
-    // Increment shop invoice counter
-    sqlite.prepare('UPDATE shop_profile SET invoice_counter = invoice_counter + 1').run();
-
     return billId;
   })();
 
@@ -269,18 +272,58 @@ const generatePdf = async (billId) => {
   return generateBillPDF(bill, items, shop);
 };
 
+const generateThermalPdf = async (billId) => {
+  const bill = getBillById(billId);
+  const items = getBillItems(billId);
+  const shop = getShop();
+  return generateThermalPDF(bill, items, shop);
+};
+
 const getWhatsAppLink = (billId) => {
   const bill = getBillById(billId);
+  const items = getBillItems(billId);
   const shop = getShop();
   const phone = bill.customer_phone;
   if (!phone) throw Object.assign(new Error('No phone number on this bill'), { statusCode: 400 });
   const clean = `91${phone.replace(/\D/g, '').slice(-10)}`;
-  const totalRs = (bill.total_amount / 100).toFixed(2);
-  const dueRs = (bill.due_amount / 100).toFixed(2);
-  const upiLine = shop.upi_id ? `\nPay via UPI: ${shop.upi_id}` : '';
-  const message = `Dear ${bill.customer_name || 'Customer'},\n\nBill ${bill.bill_number} for ₹${totalRs}${bill.due_amount > 0 ? `\nDue: ₹${dueRs}` : ''}${upiLine}\n\nThank you!\n— ${shop.shop_name}`;
+
+  const fmt = (paise) => `₹${(paise / 100).toFixed(2)}`;
+
+  // Build items list in Marathi
+  const itemLines = items.map((it, i) => {
+    const name = it.product_name || it.name || `वस्तू ${i + 1}`;
+    const qty = it.quantity;
+    const unit = it.unit || 'नग';
+    const rate = fmt(it.rate);
+    const total = fmt(it.total_amount || it.rate * it.quantity);
+    return `  ${i + 1}. ${name} — ${qty} ${unit} × ${rate} = ${total}`;
+  }).join('\n');
+
+  const billDate = bill.bill_date
+    ? new Date(bill.bill_date).toLocaleDateString('mr-IN', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    : '';
+
+  const upiLine = shop.upi_id ? `\n💳 UPI द्वारे पेमेंट करा: ${shop.upi_id}` : '';
+  const dueLine = bill.due_amount > 0 ? `\n⚠️ बाकी रक्कम: ${fmt(bill.due_amount)}` : '';
+
+  const message =
+`नमस्कार ${bill.customer_name || 'ग्राहक'},
+
+📋 *बिल तपशील* — ${shop.shop_name || ''}
+━━━━━━━━━━━━━━━━━━━━
+🔖 बिल नं: ${bill.bill_number}
+📅 दिनांक: ${billDate}
+━━━━━━━━━━━━━━━━━━━━
+🛒 *खरेदी केलेल्या वस्तू:*
+${itemLines}
+━━━━━━━━━━━━━━━━━━━━
+💰 एकूण रक्कम: ${fmt(bill.total_amount)}${bill.discount_amount > 0 ? `\n🏷️ सूट: ${fmt(bill.discount_amount)}` : ''}${dueLine}${upiLine}
+━━━━━━━━━━━━━━━━━━━━
+धन्यवाद! आपल्या विश्वासाबद्दल आभारी आहोत. 🙏
+— ${shop.shop_name}${shop.phone ? `\n📞 ${shop.phone}` : ''}`;
+
   const url = `https://wa.me/${clean}?text=${encodeURIComponent(message)}`;
   return { url, phone: clean, message };
 };
 
-module.exports = { getAll, getById, create, recordPayment, generatePdf, getNextBillNumber, getWhatsAppLink };
+module.exports = { getAll, getById, create, recordPayment, generatePdf, generateThermalPdf, getNextBillNumber, getWhatsAppLink };

@@ -81,6 +81,19 @@ const downloadPdf = async (req, res, next) => {
   } catch (e) { next(e); }
 };
 
+const downloadThermalPdf = async (req, res, next) => {
+  try {
+    const buffer = await service.generateThermalPdf(Number(req.params.id));
+    const bill = service.getById(Number(req.params.id));
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="${bill.bill_number}-58mm.pdf"`,
+      'Content-Length': buffer.length,
+    });
+    res.send(buffer);
+  } catch (e) { next(e); }
+};
+
 const getNextBillNumber = (req, res, next) => {
   try {
     sendSuccess(res, { bill_number: service.getNextBillNumber() });
@@ -93,4 +106,4 @@ const getWhatsAppLink = (req, res, next) => {
   } catch (e) { next(e); }
 };
 
-module.exports = { getAll, getById, create, recordPayment, downloadPdf, getNextBillNumber, getWhatsAppLink };
+module.exports = { getAll, getById, create, recordPayment, downloadPdf, downloadThermalPdf, getNextBillNumber, getWhatsAppLink };

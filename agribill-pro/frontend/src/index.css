@@ -148,8 +148,72 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: var(--shadow-focus);
 }
 
-/* Print styles */
+/* ─── Print Styles ─────────────────────────────────────────────────────────── */
 @media print {
-  .sidebar, .topbar, .no-print { display: none !important; }
-  .main-content { margin: 0 !important; padding: 0 !important; }
+  /* Hide all app chrome */
+  .sidebar, .topbar, .print\:hidden,
+  .no-print, [data-no-print] { display: none !important; }
+
+  /* Reset layout for print */
+  html, body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 11pt;
+  }
+
+  /* Main content area — full width for A4 */
+  main {
+    margin-top: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Hide animations in print */
+  .page-enter { animation: none !important; }
+
+  /* Bill preview card — remove card shadow for print */
+  #bill-print-area {
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Page size: A4 */
+  @page {
+    size: A4 portrait;
+    margin: 12mm 14mm;
+  }
+
+  /* Table borders for print */
+  table th, table td {
+    border: 0.5pt solid #e5e5ea;
+  }
 }
+
+/* ─── 58mm Receipt Print Mode ────────────────────────────────────────────────
+   Usage: Add class 'mode-58mm' to <body> before calling window.print()
+   This forces the print to use 58mm paper size
+───────────────────────────────────────────────────────────────────────────── */
+@media print {
+  body.mode-58mm {
+    font-size: 7pt !important;
+    font-family: 'Courier New', monospace !important;
+    width: 58mm !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body.mode-58mm @page {
+    size: 58mm auto;
+    margin: 2mm 3mm;
+  }
+
+  /* In 58mm mode, show only the thermal receipt, hide the full HTML preview */
+  body.mode-58mm #bill-print-area { display: none !important; }
+  body.mode-58mm #thermal-receipt { display: block !important; }
+}
+
+/* The thermal receipt is hidden in normal view — shown only in 58mm print mode */
+#thermal-receipt { display: none; }

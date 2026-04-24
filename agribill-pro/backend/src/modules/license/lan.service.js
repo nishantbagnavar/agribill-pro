@@ -13,7 +13,8 @@ function getLocalIp() {
 
 async function getLanQrBase64(port) {
   const ip = getLocalIp();
-  const url = `http://${ip}:${port || 5000}`;
+  const frontendPort = port || Number(process.env.FRONTEND_PORT) || 3000;
+  const url = `http://${ip}:${frontendPort}`;
   const dataUrl = await QRCode.toDataURL(url, { width: 200, margin: 2 });
   return { url, qr: dataUrl };
 }

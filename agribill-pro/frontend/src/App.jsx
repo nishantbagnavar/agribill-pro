@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
 import { useAuthStore } from './store/auth.store.js';
 import AppLayout from './components/Layout/AppLayout.jsx';
+import ErrorBoundary from './components/ErrorBoundary.jsx';
 
 // Lazy pages — stubs for sessions 7-9 (replaced as sessions complete)
 import { lazy, Suspense } from 'react';
@@ -81,6 +82,7 @@ function GuestGuard({ children }) {
 function App() {
   return (
     <BrowserRouter>
+      <ErrorBoundary>
       <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Public */}
@@ -112,6 +114,7 @@ function App() {
             <Route path="/reminders" element={<Reminders />} />
             <Route path="/whatsapp" element={<WhatsApp />} />
             <Route path="/settings" element={<Settings />} />
+            <Route path="/reports" element={<Navigate to="/reports/gst" replace />} />
             <Route path="/reports/gst" element={<GSTReport />} />
           </Route>
 
@@ -119,6 +122,7 @@ function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

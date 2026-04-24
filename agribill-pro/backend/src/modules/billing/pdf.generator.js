@@ -5,7 +5,7 @@ const fs = require('fs');
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-const fmt = (paise) => '₹' + (paise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 });
+const fmt = (paise) => 'Rs.' + (paise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 });
 const fmtNum = (paise) => (paise / 100).toLocaleString('en-IN', { minimumFractionDigits: 2 });
 
 const numberToWords = (amount) => {

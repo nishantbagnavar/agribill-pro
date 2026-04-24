@@ -9,22 +9,25 @@ import { useNotificationStore } from '../../store/notification.store.js';
 import { authApi } from '../../api/auth.api.js';
 import toast from 'react-hot-toast';
 
-export default function Sidebar({ collapsed, onToggle, waConnected, whatsappEnabled, mobileOpen, isMobile, onMobileClose }) {
+export default function Sidebar({ collapsed, onToggle, waConnected, whatsappEnabled, features = {}, mobileOpen, isMobile, onMobileClose }) {
   const { user, logout } = useAuthStore();
   const { unreadCount } = useNotificationStore();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
+  // feature === false means explicitly disabled; undefined/true means enabled
+  const feat = (key) => features[key] !== false;
+
   const NAV = [
     { to: '/dashboard', icon: LayoutDashboard, label: t('nav.dashboard') },
-    { to: '/inventory', icon: Package, label: t('nav.inventory') },
-    { to: '/billing', icon: Receipt, label: t('nav.billing') },
+    feat('inventory') && { to: '/inventory', icon: Package, label: t('nav.inventory') },
+    feat('billing')   && { to: '/billing', icon: Receipt, label: t('nav.billing') },
     { to: '/customers', icon: Users, label: t('nav.customers') },
     { to: '/reminders', icon: Bell, label: t('nav.reminders'), badge: 'notifications' },
-    ...(whatsappEnabled ? [{ to: '/whatsapp', icon: MessageCircle, label: t('nav.whatsapp'), waStatus: true }] : []),
-    { to: '/reports/gst', icon: FileText, label: 'GST Reports' },
+    (whatsappEnabled && feat('whatsapp')) && { to: '/whatsapp', icon: MessageCircle, label: t('nav.whatsapp'), waStatus: true },
+    feat('reports')   && { to: '/reports/gst', icon: FileText, label: 'GST Reports' },
     { to: '/settings', icon: Settings, label: t('nav.settings') },
-  ];
+  ].filter(Boolean);
 
   const handleLogout = async () => {
     try {

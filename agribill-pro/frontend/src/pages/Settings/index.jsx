@@ -29,8 +29,8 @@ const schema = z.object({
   upi_id: z.string().nullable().optional(),
   invoice_prefix: z.string().min(1, 'Invoice prefix required'),
   terms_conditions: z.string().nullable().optional(),
-  low_stock_threshold: z.coerce.number().min(0).default(5),
-  expiry_reminder_days: z.coerce.number().min(0).default(30),
+  low_stock_threshold: z.coerce.number().min(1, 'Must be at least 1').default(5),
+  expiry_reminder_days: z.coerce.number().min(1, 'Must be at least 1').default(30),
 });
 
 /* ─── Printer Tab ──────────────────────────────────────────────────────────── */
@@ -409,13 +409,20 @@ function BackupSettings() {
   );
 }
 
+const FEATURE_LABELS = {
+  billing: 'Billing',
+  inventory: 'Inventory',
+  whatsapp: 'WhatsApp',
+  reports: 'GST Reports',
+};
+
 /* ─── License Tab ─────────────────────────────────────────────────────────── */
 function LicenseSettings() {
-  const { data: status, isLoading } = useLicenseStatus();
+  const { data: status, isLoading, refetch, isFetching } = useLicenseStatus();
   const activate = useActivateLicense();
   const verify = useVerifyLicense();
   const resetHwidMutation = useResetHwid();
-  const { data: lanData } = useLanQr();
+  const { data: lanData, refetch: refetchQr, isFetching: qrFetching } = useLanQr();
 
   const [keyInput, setKeyInput] = useState('');
   const [resetKeyInput, setResetKeyInput] = useState('');
@@ -431,7 +438,10 @@ function LicenseSettings() {
 
   const handleVerify = () => {
     verify.mutate(undefined, {
-      onSuccess: (d) => toast.success(d.online ? 'License verified online' : 'Grace period valid (offline)'),
+      onSuccess: (d) => {
+        toast.success(d.online ? 'License verified online' : 'Grace period valid (offline)');
+        refetch();
+      },
       onError: (e) => toast.error(e.response?.data?.error || 'Verification failed'),
     });
   };
@@ -448,13 +458,32 @@ function LicenseSettings() {
     });
   };
 
+  const handleSyncNow = () => {
+    verify.mutate(undefined, {
+      onSuccess: () => { toast.success('Synced with server'); refetch(); },
+      onError: () => { refetch(); toast('Offline — showing cached status', { icon: 'ℹ️' }); },
+    });
+  };
+
   if (isLoading) return <div className="flex justify-center py-12"><Loader2 size={20} className="animate-spin text-gray-400" /></div>;
+
+  const features = status?.features || {};
 
   return (
     <div className="space-y-5">
       {/* Status card */}
       <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-        <h3 className="font-display font-600 text-sm text-gray-700 mb-4">License Status</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-display font-600 text-sm text-gray-700">License Status</h3>
+          <button
+            onClick={handleSyncNow}
+            disabled={verify.isPending || isFetching}
+            className="flex items-center gap-1.5 text-xs font-600 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {(verify.isPending || isFetching) ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+            Sync Now
+          </button>
+        </div>
         <div className="grid grid-cols-2 gap-4">
           <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
             <p className="text-xs text-gray-500 mb-1">Status</p>
@@ -487,7 +516,7 @@ function LicenseSettings() {
           )}
           {status?.lastVerified && (
             <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-              <p className="text-xs text-gray-500 mb-1">Last Verified</p>
+              <p className="text-xs text-gray-500 mb-1">Last Synced</p>
               <div className="flex items-center gap-1.5">
                 <Clock size={12} className="text-gray-400" />
                 <span className="text-sm font-600 text-gray-800">{new Date(status.lastVerified).toLocaleString('en-IN')}</span>
@@ -502,6 +531,35 @@ function LicenseSettings() {
           )}
         </div>
       </div>
+
+      {/* Feature toggles (read-only — managed from admin portal) */}
+      {status?.activated && (
+        <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+          <h3 className="font-display font-600 text-sm text-gray-700 mb-3">Enabled Features</h3>
+          <div className="grid grid-cols-2 gap-3">
+            {Object.entries(FEATURE_LABELS).map(([key, label]) => {
+              const enabled = features[key] !== false; // default true if not explicitly false
+              return (
+                <div
+                  key={key}
+                  className={`flex items-center gap-3 p-3 rounded-xl border-2 ${
+                    enabled ? 'border-[var(--primary)] bg-[var(--primary)]/5' : 'border-gray-100 bg-gray-50'
+                  }`}
+                >
+                  {enabled
+                    ? <BadgeCheck size={16} className="text-[var(--primary)] flex-shrink-0" />
+                    : <BadgeX size={16} className="text-gray-300 flex-shrink-0" />
+                  }
+                  <span className={`text-sm font-600 ${enabled ? 'text-[var(--primary)]' : 'text-gray-400'}`}>
+                    {label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <p className="text-[11px] text-gray-400 mt-3">Features are managed by your admin. Changes sync automatically every 5 minutes.</p>
+        </div>
+      )}
 
       {/* Activate / verify */}
       {!status?.activated ? (
@@ -571,15 +629,25 @@ function LicenseSettings() {
 
       {/* LAN QR */}
       <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-        <h3 className="font-display font-600 text-sm text-gray-700 mb-1">LAN Access — Other Devices</h3>
-        <p className="text-xs text-gray-500 mb-4">Scan with any device on the same Wi-Fi network to open AgriBill Pro.</p>
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="font-display font-600 text-sm text-gray-700">LAN Access — Other Devices</h3>
+          <button
+            onClick={() => refetchQr()}
+            disabled={qrFetching}
+            className="flex items-center gap-1.5 text-xs font-600 px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {qrFetching ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+            Refresh QR
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 mb-4">Scan with your phone on the same network to open AgriBill Pro.</p>
         {lanData ? (
           <div className="flex items-center gap-5">
             <img src={lanData.qr} alt="LAN QR" className="w-36 h-36 border rounded-xl" />
             <div>
               <p className="text-xs text-gray-500 mb-1">Network URL</p>
               <p className="font-mono text-sm font-600 text-[var(--primary)]">{lanData.url}</p>
-              <p className="text-[11px] text-gray-400 mt-2">Works only when all devices are on the same network as this computer.</p>
+              <p className="text-[11px] text-gray-400 mt-2">Make sure port 3000 is allowed in Windows Firewall.</p>
             </div>
           </div>
         ) : (
@@ -588,7 +656,7 @@ function LicenseSettings() {
       </div>
 
       {/* Setup instructions */}
-      {!process.env.SUPABASE_URL && (
+      {!status?.activated && (
         <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
           <AlertTriangle size={16} className="text-blue-600 flex-shrink-0 mt-0.5" />
           <div>
@@ -643,8 +711,28 @@ export default function Settings() {
 
   const updateMutation = useMutation({
     mutationFn: (payload) => shopApi.updateProfile(payload),
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success('Shop settings updated successfully');
+      // Reset form with saved values so isDirty resets → prevents double-save bug
+      const saved = res.data?.data;
+      if (saved) {
+        reset({
+          shop_name: saved.shop_name || '',
+          owner_name: saved.owner_name || '',
+          phone: saved.phone || '',
+          address: saved.address || '',
+          city: saved.city || '',
+          state: saved.state || '',
+          pincode: saved.pincode || '',
+          gstin: saved.gstin || '',
+          fssai_number: saved.fssai_number || '',
+          upi_id: saved.upi_id || '',
+          invoice_prefix: saved.invoice_prefix || 'AGR',
+          terms_conditions: saved.terms_conditions || '',
+          low_stock_threshold: saved.low_stock_threshold ?? 5,
+          expiry_reminder_days: saved.expiry_reminder_days ?? 30,
+        });
+      }
       qc.invalidateQueries(['shop-profile']);
       qc.invalidateQueries(['auth-me']);
     },
@@ -855,16 +943,18 @@ export default function Settings() {
                   <div className="col-span-2 sm:col-span-1">
                     <label className="block text-xs font-600 text-gray-700 mb-1">Low Stock Alert Threshold</label>
                     <div className="relative">
-                      <input type="number" {...register('low_stock_threshold')} className="w-full h-10 pl-3 pr-12 rounded-lg border text-sm outline-none focus:border-[var(--primary)]" />
+                      <input type="number" min={1} {...register('low_stock_threshold')} className="w-full h-10 pl-3 pr-12 rounded-lg border text-sm outline-none focus:border-[var(--primary)]" />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">units</span>
                     </div>
+                    {errors.low_stock_threshold && <p className="text-red-500 text-[10px] mt-1">{errors.low_stock_threshold.message}</p>}
                   </div>
                   <div className="col-span-2 sm:col-span-1">
                     <label className="block text-xs font-600 text-gray-700 mb-1">Expiry Reminder Days Before</label>
                     <div className="relative">
-                      <input type="number" {...register('expiry_reminder_days')} className="w-full h-10 pl-3 pr-12 rounded-lg border text-sm outline-none focus:border-[var(--primary)]" />
+                      <input type="number" min={1} {...register('expiry_reminder_days')} className="w-full h-10 pl-3 pr-12 rounded-lg border text-sm outline-none focus:border-[var(--primary)]" />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">days</span>
                     </div>
+                    {errors.expiry_reminder_days && <p className="text-red-500 text-[10px] mt-1">{errors.expiry_reminder_days.message}</p>}
                   </div>
                 </div>
               </div>

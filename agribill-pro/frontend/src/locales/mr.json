@@ -6,7 +6,8 @@
     "customers": "ग्राहक",
     "reminders": "स्मरणपत्रे",
     "whatsapp": "व्हॉट्सअॅप",
-    "settings": "सेटिंग्ज"
+    "settings": "सेटिंग्ज",
+    "reports": "GST अहवाल"
   },
   "dashboard": {
     "title": "डॅशबोर्ड",
@@ -221,5 +222,35 @@
     "paid": "भरले",
     "partial": "अंशतः",
     "unpaid": "न भरलेले"
+  },
+  "reports": {
+    "title": "GST अहवाल",
+    "subtitle": "GSTR-1 दाखल करण्यासाठी मासिक सारांश",
+    "downloadPDF": "PDF डाउनलोड करा",
+    "downloadExcel": "Excel डाउनलोड करा — GSTR-1 तयार",
+    "totalSales": "एकूण विक्री",
+    "taxCollected": "एकूण कर",
+    "b2bBills": "B2B बिले",
+    "b2cBills": "B2C बिले",
+    "taxBreakdown": "दरानुसार कर विभाजन",
+    "b2bList": "B2B इनव्हॉईस यादी",
+    "invoices": "{{count}} इनव्हॉईस",
+    "noB2B": "{{month}} साठी B2B इनव्हॉईस नाहीत.",
+    "hsnSummary": "HSN-निहाय सारांश",
+    "hsnSubtitle": "GSTR-1 दाखल करण्यासाठी अनिवार्य परिशिष्ट",
+    "b2cSummary": "B2C सारांश",
+    "noBills": "{{month}} साठी बिले नाहीत",
+    "noBillsHint": "GST अहवाल डेटा पाहण्यासाठी या महिन्यात बिले तयार करा.",
+    "loadFailed": "अहवाल डेटा लोड करण्यात अयशस्वी."
+  },
+  "remindersPage": {
+    "subtitle": "साठा आणि थकबाकी देयकांवर लक्ष ठेवा",
+    "refreshAlerts": "सूचना ताजे करा",
+    "loading": "स्मरणपत्रे लोड होत आहेत...",
+    "allCaughtUp": "सर्व ठीक आहे!",
+    "noneInCategory": "या श्रेणीत कोणतीही स्मरणपत्रे नाहीत.",
+    "markAllRead": "सर्व वाचले म्हणून चिन्हांकित करा",
+    "markRead": "वाचले",
+    "sendWhatsApp": "WhatsApp पाठवा"
   }
 }

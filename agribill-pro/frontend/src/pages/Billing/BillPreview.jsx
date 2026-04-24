@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Printer, Download, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Printer, Download, CheckCircle, Clock, AlertCircle, Thermometer } from 'lucide-react';
 import { useBill } from '../../hooks/useBilling.js';
 import { shopApi } from '../../api/shop.api.js';
 import { billingApi } from '../../api/billing.api.js';
@@ -62,6 +62,22 @@ export default function BillPreview() {
     }
   };
 
+  const handleDownloadThermal = async () => {
+    try {
+      toast.loading('Generating 58mm receipt...', { id: 'thermal' });
+      const res = await billingApi.downloadThermalPdf(id);
+      const url = URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const a   = document.createElement('a');
+      a.href     = url;
+      a.download = `${bill?.bill_number || 'bill'}-58mm.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('58mm receipt downloaded!', { id: 'thermal' });
+    } catch {
+      toast.error('Failed to generate 58mm receipt', { id: 'thermal' });
+    }
+  };
+
   const handlePrint = () => window.print();
 
   if (isLoading) {
@@ -90,7 +106,7 @@ export default function BillPreview() {
     <div className="page-enter max-w-4xl mx-auto space-y-4">
 
       {/* ── Toolbar ── */}
-      <div className="flex items-center justify-between print:hidden">
+      <div className="flex items-center justify-between print:hidden flex-wrap gap-2">
         <button
           onClick={() => navigate('/billing')}
           className="flex items-center gap-2 h-9 px-3 rounded-xl text-sm font-display font-600 transition-colors hover:bg-gray-100"
@@ -98,13 +114,21 @@ export default function BillPreview() {
         >
           <ArrowLeft size={16} /> Back
         </button>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <button
             onClick={handlePrint}
             className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-display font-600 transition-all hover:opacity-90"
             style={{ background: 'var(--gray-100)', color: 'var(--gray-700)' }}
           >
-            <Printer size={15} /> Print
+            <Printer size={15} /> Print A4
+          </button>
+          <button
+            onClick={handleDownloadThermal}
+            className="flex items-center gap-2 h-9 px-4 rounded-xl text-sm font-display font-600 transition-all hover:opacity-90"
+            style={{ background: '#065f46', color: 'white' }}
+            title="Download optimised 58mm thermal receipt PDF"
+          >
+            <Thermometer size={15} /> 58mm Receipt
           </button>
           <button
             onClick={handleDownloadPdf}

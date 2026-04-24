@@ -87,12 +87,12 @@ const getMe = (userId) => {
            sp.city, sp.state, sp.phone, sp.gstin, sp.logo_path, sp.upi_id,
            sp.invoice_prefix, sp.invoice_counter
     FROM users u
-    LEFT JOIN shop_profile sp ON 1=1
+    LEFT JOIN shop_profile sp ON sp.id = (SELECT id FROM shop_profile LIMIT 1)
     WHERE u.id = ?
   `).get(userId);
 
   if (!user) throw new NotFoundError('User');
-  return user;
+  return { user };
 };
 
 module.exports = { register, login, refreshAccessToken, getMe };

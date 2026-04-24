@@ -10,6 +10,7 @@ import { whatsappApi } from '../../api/whatsapp.api.js';
 import { authApi } from '../../api/auth.api.js';
 import { shopApi } from '../../api/shop.api.js';
 import { useAuthStore } from '../../store/auth.store.js';
+import { useLicenseStatus } from '../../hooks/useLicense.js';
 
 export default function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
@@ -20,7 +21,14 @@ export default function AppLayout() {
   // Fetch full user profile (includes shop_name) on app load
   useQuery({
     queryKey: ['auth-me'],
-    queryFn: () => authApi.me().then((r) => { updateUser(r.data.data); return r.data.data; }),
+    queryFn: async () => {
+      const r = await authApi.me();
+      const data = r.data.data;
+      // data is now { user: {...} } from the fixed getMe
+      const user = data?.user ?? data;
+      if (user) updateUser(user);
+      return user;
+    },
     staleTime: 5 * 60 * 1000,
     retry: false,
   });
@@ -50,6 +58,9 @@ export default function AppLayout() {
     retry: false,
   });
 
+  const { data: licenseStatus } = useLicenseStatus();
+  const features = licenseStatus?.features || {};
+
   const waConnected = waStatus?.status === 'CONNECTED';
   const sidebarWidth = collapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)';
 
@@ -72,6 +83,7 @@ export default function AppLayout() {
         onToggle={() => setCollapsed((v) => !v)}
         waConnected={waConnected}
         whatsappEnabled={shopProfile?.whatsapp_enabled !== false}
+        features={features}
         mobileOpen={mobileOpen}
         isMobile={isMobile}
         onMobileClose={() => setMobileOpen(false)}

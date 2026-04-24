@@ -467,7 +467,7 @@ export default function Billing() {
       bill_date:        billDate,
       due_date:         dueDate || null,
       payment_method:   paymentMethod,
-      paid_amount:      paymentMethod === 'CREDIT' ? 0 : Math.round(amountPaid * 100),
+      paid_amount:      paymentMethod === 'CREDIT' ? 0 : (amountPaid === null ? null : Math.round(Number(amountPaid) * 100)),
       notes,
       items: items.map((item) => ({
         product_id:       item.product_id,
@@ -508,7 +508,9 @@ export default function Billing() {
     F10: () => { if (!createBill.isPending) handleGenerate(); },
   });
 
-  const dueAmount = totals.totalAmount - Math.round((paymentMethod === 'CREDIT' ? 0 : amountPaid) * 100);
+  // null = blank (fully paid), 0 = not paid, >0 = partial
+  const effectivePaid = paymentMethod === 'CREDIT' ? 0 : (amountPaid === null ? totals.totalAmount : Math.round(Number(amountPaid) * 100));
+  const dueAmount = totals.totalAmount - effectivePaid;
 
   return (
     <div className="page-enter h-full">
@@ -658,19 +660,47 @@ export default function Billing() {
           {/* Amount paid — F4 focuses this */}
           {paymentMethod !== 'CREDIT' && (
             <div>
-              <label className="font-display font-600 text-xs uppercase tracking-wider block mb-2" style={{ color: 'var(--gray-400)' }}>
-                {t('billing.amountPaid')}
-                <kbd className="ml-2 text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-mono font-400" style={{ color: 'var(--gray-500)' }}>F4</kbd>
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="font-display font-600 text-xs uppercase tracking-wider" style={{ color: 'var(--gray-400)' }}>
+                  {t('billing.amountPaid')}
+                  <kbd className="ml-2 text-[10px] bg-gray-100 px-1.5 py-0.5 rounded font-mono font-400" style={{ color: 'var(--gray-500)' }}>F4</kbd>
+                </label>
+                <div className="flex gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setAmountPaid(0)}
+                    className="text-[10px] font-display font-600 px-2 py-0.5 rounded-md border transition-all"
+                    style={
+                      amountPaid === 0
+                        ? { background: '#FEE2E2', borderColor: '#FCA5A5', color: '#DC2626' }
+                        : { background: 'var(--gray-100)', borderColor: 'var(--gray-200)', color: 'var(--gray-500)' }
+                    }
+                  >
+                    Not Paid
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAmountPaid(null)}
+                    className="text-[10px] font-display font-600 px-2 py-0.5 rounded-md border transition-all"
+                    style={
+                      amountPaid === null
+                        ? { background: '#DCFCE7', borderColor: '#86EFAC', color: '#16A34A' }
+                        : { background: 'var(--gray-100)', borderColor: 'var(--gray-200)', color: 'var(--gray-500)' }
+                    }
+                  >
+                    Full Paid
+                  </button>
+                </div>
+              </div>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 font-mono text-sm" style={{ color: 'var(--gray-400)' }}>₹</span>
                 <input
                   ref={amountPaidRef}
                   type="number"
                   min="0"
-                  value={amountPaid || ''}
-                  placeholder="0"
-                  onChange={(e) => setAmountPaid(e.target.value === '' ? 0 : Number(e.target.value))}
+                  value={amountPaid === null ? '' : amountPaid}
+                  placeholder="Leave blank = fully paid"
+                  onChange={(e) => setAmountPaid(e.target.value === '' ? null : Number(e.target.value))}
                   onFocus={(e) => e.target.select()}
                   className="w-full h-10 pl-7 pr-3 rounded-xl border font-mono text-sm outline-none"
                   style={{ borderColor: 'var(--gray-200)' }}
@@ -686,14 +716,11 @@ export default function Billing() {
               style={{ background: 'var(--gray-50)', border: '1px solid var(--gray-200)' }}
             >
               <TotalsSummary totals={totals} />
-              {paymentMethod !== 'CREDIT' && amountPaid > 0 && (
+              {dueAmount > 0 && (
                 <div className="flex justify-between pt-2 mt-2" style={{ borderTop: '1px dashed var(--gray-300)' }}>
                   <span className="font-body text-xs" style={{ color: 'var(--gray-500)' }}>{t('billing.due')}</span>
-                  <span
-                    className="font-mono font-700 text-sm"
-                    style={{ color: dueAmount > 0 ? 'var(--color-danger)' : 'var(--color-success)' }}
-                  >
-                    {formatCurrency(Math.max(0, dueAmount), { decimals: 0 })}
+                  <span className="font-mono font-700 text-sm" style={{ color: 'var(--color-danger)' }}>
+                    {formatCurrency(dueAmount, { decimals: 0 })}
                   </span>
                 </div>
               )}

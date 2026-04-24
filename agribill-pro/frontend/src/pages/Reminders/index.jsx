@@ -88,7 +88,7 @@ export default function Reminders() {
         <div>
           <h1 className="font-display font-700 text-xl" style={{ color: 'var(--gray-900)' }}>{t('reminders.title')}</h1>
           <p className="font-body text-sm mt-0.5" style={{ color: 'var(--gray-500)' }}>
-            Stay on top of your inventory and pending payments
+            {t('remindersPage.subtitle')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -100,9 +100,9 @@ export default function Reminders() {
           >
             <Loader2 size={16} className={generateMutation.isPending ? 'animate-spin' : 'hidden'} />
             {!generateMutation.isPending && <span>⟳ </span>}
-            Refresh Alerts
+            {t('remindersPage.refreshAlerts')}
           </button>
-          
+
           <button
             onClick={() => readAllMutation.mutate()}
             disabled={readAllMutation.isPending || notifications.every(n => n.is_read)}
@@ -110,7 +110,7 @@ export default function Reminders() {
             style={{ background: 'white', color: 'var(--gray-700)', borderColor: 'var(--gray-200)' }}
           >
             {readAllMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <CheckCheck size={16} />}
-            Mark all as read
+            {t('remindersPage.markAllRead')}
           </button>
         </div>
       </div>
@@ -118,19 +118,19 @@ export default function Reminders() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden" style={{ boxShadow: 'var(--shadow-card)' }}>
         {/* Tabs */}
         <div className="flex overflow-x-auto border-b border-gray-100 no-scrollbar">
-          {TABS.map(t => (
+          {TABS.map(tab => (
             <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id)}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
               className="flex-1 min-w-[120px] h-12 flex items-center justify-center font-display font-500 text-sm border-b-2 transition-all px-4"
               style={{
-                borderColor: activeTab === t.id ? 'var(--primary)' : 'transparent',
-                color: activeTab === t.id ? 'var(--primary-dark)' : 'var(--gray-500)',
-                background: activeTab === t.id ? 'var(--green-50)' : 'transparent',
+                borderColor: activeTab === tab.id ? 'var(--primary)' : 'transparent',
+                color: activeTab === tab.id ? 'var(--primary-dark)' : 'var(--gray-500)',
+                background: activeTab === tab.id ? 'var(--green-50)' : 'transparent',
               }}
             >
-              {t.label}
-              {t.id === 'ALL' ? (
+              {tab.label}
+              {tab.id === 'ALL' ? (
                 <span className="ml-2 px-1.5 py-0.5 rounded-full text-[10px] bg-gray-100 text-gray-600">{notifications.filter(n => !n.is_read).length}</span>
               ) : ''}
             </button>
@@ -142,13 +142,13 @@ export default function Reminders() {
           {isLoading ? (
              <div className="p-12 text-center text-gray-400 flex flex-col items-center">
                <Loader2 className="animate-spin mb-2" size={24} />
-               <p className="text-sm">Loading reminders...</p>
+               <p className="text-sm">{t('remindersPage.loading')}</p>
              </div>
           ) : filtered.length === 0 ? (
             <div className="p-12 text-center text-gray-400 flex flex-col items-center">
               <AlertCircle size={32} className="mb-3 opacity-50" />
-              <p className="text-sm font-display font-500 text-gray-600">All caught up!</p>
-              <p className="text-xs font-body mt-1">No reminders for this category.</p>
+              <p className="text-sm font-display font-500 text-gray-600">{t('remindersPage.allCaughtUp')}</p>
+              <p className="text-xs font-body mt-1">{t('remindersPage.noneInCategory')}</p>
             </div>
           ) : (
             filtered.map((n) => {
@@ -189,7 +189,7 @@ export default function Reminders() {
                         onClick={() => readMutation.mutate(n.id)}
                         className="h-8 px-3 rounded text-xs font-600 border border-gray-200 text-gray-600 bg-white hover:bg-gray-50 transition-colors"
                       >
-                        Mark Read
+                        {t('remindersPage.markRead')}
                       </button>
                     )}
                     {n.type === 'DUE_PAYMENT' && (
@@ -197,7 +197,7 @@ export default function Reminders() {
                         onClick={() => handleSendWA(n)}
                         className="flex items-center gap-1.5 h-8 px-3 rounded text-xs font-600 transition-colors bg-green-50 text-green-700 hover:bg-green-100 outline-none"
                       >
-                        <MessageCircle size={14} /> Send WhatsApp
+                        <MessageCircle size={14} /> {t('remindersPage.sendWhatsApp')}
                       </button>
                     )}
                   </div>

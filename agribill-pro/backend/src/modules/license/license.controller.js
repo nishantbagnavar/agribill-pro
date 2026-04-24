@@ -42,8 +42,7 @@ async function resetHwidHandler(req, res, next) {
 
 async function lanQr(req, res, next) {
   try {
-    const port = process.env.PORT || 5000;
-    const data = await getLanQrBase64(port);
+    const data = await getLanQrBase64(); // port resolved inside lan.service via FRONTEND_PORT env or default 3000
     res.json({ success: true, data });
   } catch (err) {
     next(err);

@@ -1,15 +1,20 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Download, FileSpreadsheet, FileText, Loader2 } from 'lucide-react';
 import { useGSTSummary } from '../../hooks/useReports.js';
 import { formatCurrency } from '../../utils/formatCurrency.js';
 import api from '../../api/axios.js';
 import toast from 'react-hot-toast';
 
-const getMonthLabel = (month) => {
+const MONTH_NAMES_EN = ['January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTH_NAMES_MR = ['जानेवारी', 'फेब्रुवारी', 'मार्च', 'एप्रिल', 'मे', 'जून',
+  'जुलै', 'ऑगस्ट', 'सप्टेंबर', 'ऑक्टोबर', 'नोव्हेंबर', 'डिसेंबर'];
+
+const getMonthLabel = (month, lang) => {
   const [year, m] = month.split('-');
-  const months = ['January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'];
-  return `${months[parseInt(m, 10) - 1]} ${year}`;
+  const names = lang === 'mr' ? MONTH_NAMES_MR : MONTH_NAMES_EN;
+  return `${names[parseInt(m, 10) - 1]} ${year}`;
 };
 
 const addMonths = (month, delta) => {
@@ -49,10 +54,13 @@ function TableHeader({ cols }) {
 }
 
 export default function GSTReport() {
+  const { t, i18n } = useTranslation();
   const [month, setMonth] = useState(currentMonth());
   const [downloading, setDownloading] = useState('');
 
   const { data, isLoading, isError } = useGSTSummary(month);
+
+  const monthLabel = getMonthLabel(month, i18n.language);
 
   const handleDownload = async (format) => {
     setDownloading(format);
@@ -69,7 +77,7 @@ export default function GSTReport() {
       URL.revokeObjectURL(url);
       toast.success(`${format.toUpperCase()} downloaded`);
     } catch {
-      toast.error('Download failed. Please try again.');
+      toast.error(t('reports.loadFailed'));
     } finally {
       setDownloading('');
     }
@@ -88,9 +96,9 @@ export default function GSTReport() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="font-display font-700 text-2xl" style={{ color: 'var(--gray-900)' }}>GST Report</h1>
+          <h1 className="font-display font-700 text-2xl" style={{ color: 'var(--gray-900)' }}>{t('reports.title')}</h1>
           <p className="text-sm font-body mt-0.5" style={{ color: 'var(--gray-500)' }}>
-            Monthly GSTR-1 summary for filing
+            {t('reports.subtitle')}
           </p>
         </div>
 
@@ -104,7 +112,7 @@ export default function GSTReport() {
             <ChevronLeft size={16} />
           </button>
           <span className="font-display font-600 text-base min-w-[140px] text-center" style={{ color: 'var(--gray-900)' }}>
-            {getMonthLabel(month)}
+            {monthLabel}
           </span>
           <button
             onClick={() => setMonth((m) => addMonths(m, 1))}
@@ -126,7 +134,7 @@ export default function GSTReport() {
           style={{ background: 'var(--primary-dark)' }}
         >
           {downloading === 'pdf' ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
-          Download PDF
+          {t('reports.downloadPDF')}
         </button>
         <button
           onClick={() => handleDownload('excel')}
@@ -135,7 +143,7 @@ export default function GSTReport() {
           style={{ background: '#217346' }}
         >
           {downloading === 'excel' ? <Loader2 size={14} className="animate-spin" /> : <FileSpreadsheet size={14} />}
-          Download Excel — GSTR-1 Ready
+          {t('reports.downloadExcel')}
         </button>
       </div>
 
@@ -147,7 +155,7 @@ export default function GSTReport() {
 
       {isError && (
         <div className="rounded-xl p-6 text-center" style={{ background: 'var(--surface-card)', border: '1px solid var(--gray-200)' }}>
-          <p style={{ color: 'var(--gray-500)' }}>Failed to load report data.</p>
+          <p style={{ color: 'var(--gray-500)' }}>{t('reports.loadFailed')}</p>
         </div>
       )}
 
@@ -155,17 +163,17 @@ export default function GSTReport() {
         <>
           {/* KPI Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <KpiCard label="Total Sales" value={formatCurrency(s.total_sales)} accent="var(--primary)" />
-            <KpiCard label="Tax Collected" value={formatCurrency(totalTaxCollected)} accent="var(--gold-500)" />
-            <KpiCard label="B2B Bills" value={data?.b2bCount ?? 0} />
-            <KpiCard label="B2C Bills" value={data?.b2cCount ?? 0} />
+            <KpiCard label={t('reports.totalSales')} value={formatCurrency(s.total_sales)} accent="var(--primary)" />
+            <KpiCard label={t('reports.taxCollected')} value={formatCurrency(totalTaxCollected)} accent="var(--gold-500)" />
+            <KpiCard label={t('reports.b2bBills')} value={data?.b2bCount ?? 0} />
+            <KpiCard label={t('reports.b2cBills')} value={data?.b2cCount ?? 0} />
           </div>
 
           {/* Tax Breakdown by Rate */}
           {taxByRate.length > 0 && (
             <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--gray-200)' }}>
               <div className="px-4 py-3" style={{ background: 'var(--surface-card)', borderBottom: '1px solid var(--gray-200)' }}>
-                <h2 className="font-display font-600 text-sm" style={{ color: 'var(--gray-900)' }}>Tax Breakdown by Rate</h2>
+                <h2 className="font-display font-600 text-sm" style={{ color: 'var(--gray-900)' }}>{t('reports.taxBreakdown')}</h2>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -200,15 +208,15 @@ export default function GSTReport() {
           {/* B2B Invoices */}
           <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--gray-200)' }}>
             <div className="px-4 py-3 flex items-center justify-between" style={{ background: 'var(--surface-card)', borderBottom: '1px solid var(--gray-200)' }}>
-              <h2 className="font-display font-600 text-sm" style={{ color: 'var(--gray-900)' }}>B2B Invoice List</h2>
+              <h2 className="font-display font-600 text-sm" style={{ color: 'var(--gray-900)' }}>{t('reports.b2bList')}</h2>
               <span className="text-xs font-body px-2 py-0.5 rounded-full" style={{ background: 'var(--green-100)', color: 'var(--primary)' }}>
-                {b2bInvoices.length} invoices
+                {t('reports.invoices', { count: b2bInvoices.length })}
               </span>
             </div>
             <div className="overflow-x-auto">
               {b2bInvoices.length === 0 ? (
                 <p className="px-4 py-6 text-center text-sm font-body" style={{ color: 'var(--gray-500)' }}>
-                  No B2B invoices for {getMonthLabel(month)}.
+                  {t('reports.noB2B', { month: monthLabel })}
                 </p>
               ) : (
                 <table className="w-full text-sm">
@@ -236,8 +244,8 @@ export default function GSTReport() {
           {hsnSummary.length > 0 && (
             <div className="rounded-xl overflow-hidden" style={{ border: '1px solid var(--gray-200)' }}>
               <div className="px-4 py-3" style={{ background: 'var(--surface-card)', borderBottom: '1px solid var(--gray-200)' }}>
-                <h2 className="font-display font-600 text-sm" style={{ color: 'var(--gray-900)' }}>HSN-wise Summary</h2>
-                <p className="text-xs font-body mt-0.5" style={{ color: 'var(--gray-500)' }}>Mandatory annexure for GSTR-1 filing</p>
+                <h2 className="font-display font-600 text-sm" style={{ color: 'var(--gray-900)' }}>{t('reports.hsnSummary')}</h2>
+                <p className="text-xs font-body mt-0.5" style={{ color: 'var(--gray-500)' }}>{t('reports.hsnSubtitle')}</p>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -265,7 +273,7 @@ export default function GSTReport() {
 
           {/* B2C Summary */}
           <div className="rounded-xl p-4" style={{ background: 'var(--surface-card)', border: '1px solid var(--gray-200)' }}>
-            <h2 className="font-display font-600 text-sm mb-3" style={{ color: 'var(--gray-900)' }}>B2C Summary</h2>
+            <h2 className="font-display font-600 text-sm mb-3" style={{ color: 'var(--gray-900)' }}>{t('reports.b2cSummary')}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-sm">
               {[
                 { label: 'Bill Count', value: String(b2cSummary.bill_count || 0) },
@@ -285,8 +293,8 @@ export default function GSTReport() {
           {/* No data state */}
           {s.total_bills === 0 && (
             <div className="rounded-xl p-8 text-center" style={{ background: 'var(--surface-card)', border: '1px solid var(--gray-200)' }}>
-              <p className="font-display font-600 text-base" style={{ color: 'var(--gray-700)' }}>No bills for {getMonthLabel(month)}</p>
-              <p className="text-sm font-body mt-1" style={{ color: 'var(--gray-500)' }}>Create bills in this month to see GST report data.</p>
+              <p className="font-display font-600 text-base" style={{ color: 'var(--gray-700)' }}>{t('reports.noBills', { month: monthLabel })}</p>
+              <p className="text-sm font-body mt-1" style={{ color: 'var(--gray-500)' }}>{t('reports.noBillsHint')}</p>
             </div>
           )}
         </>

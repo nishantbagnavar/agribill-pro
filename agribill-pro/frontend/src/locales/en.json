@@ -6,7 +6,8 @@
     "customers": "Customers",
     "reminders": "Reminders",
     "whatsapp": "WhatsApp",
-    "settings": "Settings"
+    "settings": "Settings",
+    "reports": "GST Reports"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -221,5 +222,35 @@
     "paid": "Paid",
     "partial": "Partial",
     "unpaid": "Unpaid"
+  },
+  "reports": {
+    "title": "GST Report",
+    "subtitle": "Monthly GSTR-1 summary for filing",
+    "downloadPDF": "Download PDF",
+    "downloadExcel": "Download Excel — GSTR-1 Ready",
+    "totalSales": "Total Sales",
+    "taxCollected": "Tax Collected",
+    "b2bBills": "B2B Bills",
+    "b2cBills": "B2C Bills",
+    "taxBreakdown": "Tax Breakdown by Rate",
+    "b2bList": "B2B Invoice List",
+    "invoices": "{{count}} invoices",
+    "noB2B": "No B2B invoices for {{month}}.",
+    "hsnSummary": "HSN-wise Summary",
+    "hsnSubtitle": "Mandatory annexure for GSTR-1 filing",
+    "b2cSummary": "B2C Summary",
+    "noBills": "No bills for {{month}}",
+    "noBillsHint": "Create bills in this month to see GST report data.",
+    "loadFailed": "Failed to load report data."
+  },
+  "remindersPage": {
+    "subtitle": "Stay on top of your inventory and pending payments",
+    "refreshAlerts": "Refresh Alerts",
+    "loading": "Loading reminders...",
+    "allCaughtUp": "All caught up!",
+    "noneInCategory": "No reminders for this category.",
+    "markAllRead": "Mark All Read",
+    "markRead": "Mark Read",
+    "sendWhatsApp": "Send WhatsApp"
   }
 }

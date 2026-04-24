@@ -24,7 +24,7 @@ export const useCartStore = create((set, get) => ({
   billDate: new Date().toISOString().split('T')[0],
   dueDate: '',
   paymentMethod: 'CASH',
-  amountPaid: 0,
+  amountPaid: null, // null = blank (fully paid assumed), 0 = explicitly Not Paid
   notes: '',
 
   addItem: (product) => {
@@ -99,7 +99,7 @@ export const useCartStore = create((set, get) => ({
     const totalCgst = items.reduce((s, i) => s + i.cgst, 0);
     const totalSgst = items.reduce((s, i) => s + i.sgst, 0);
     const totalAmount = items.reduce((s, i) => s + i.totalAmount, 0);
-    const dueAmount = totalAmount - amountPaid;
+    const dueAmount = amountPaid === null ? 0 : totalAmount - amountPaid;
     return { subtotal, totalDiscount, taxableAmount, totalCgst, totalSgst, totalAmount, dueAmount };
   },
 
@@ -111,7 +111,7 @@ export const useCartStore = create((set, get) => ({
       billDate: new Date().toISOString().split('T')[0],
       dueDate: '',
       paymentMethod: 'CASH',
-      amountPaid: 0,
+      amountPaid: null,
       notes: '',
     }),
 }));

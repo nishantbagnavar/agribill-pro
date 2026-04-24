@@ -80,11 +80,13 @@ async function sendBillMessage(phone, billId, customerName) {
 
 async function sendDueReminder(phone, name, amount, shopName) {
   if (!waClient || waStatus !== 'CONNECTED') throw new Error('WhatsApp not connected');
+  const amountRs = `₹${(amount / 100).toLocaleString('en-IN')}`;
   const text = [
-    `🔔 *Payment Reminder*`,
-    `Dear ${name},`,
-    `You have a pending due of *₹${(amount / 100).toLocaleString('en-IN')}* at ${shopName || 'our store'}.`,
-    `Please clear it at your earliest convenience.`,
+    `🔔 *थकबाकी स्मरणपत्र*`,
+    `नमस्कार ${name},`,
+    `आपल्याकडे *${shopName || 'आमच्या दुकानात'}* येणे बाकी आहे: *${amountRs}*`,
+    `कृपया लवकरात लवकर पेमेंट करावे.`,
+    `धन्यवाद! 🙏`,
   ].join('\n');
   await waClient.sendMessage(normalizePhone(phone), text);
   logMessage(phone, 'REMINDER', text, 'SENT');

@@ -281,6 +281,7 @@ const alterStatements = [
   `ALTER TABLE bill_items ADD COLUMN variant_id INTEGER REFERENCES product_variants(id)`,
   `ALTER TABLE shop_profile ADD COLUMN state_code TEXT DEFAULT '27'`,
   `ALTER TABLE shop_profile ADD COLUMN printer_config TEXT`,
+  `ALTER TABLE license_cache ADD COLUMN features TEXT DEFAULT '{}'`,
 ];
 for (const stmt of alterStatements) {
   try {

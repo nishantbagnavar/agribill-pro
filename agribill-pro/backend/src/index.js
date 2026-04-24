@@ -114,6 +114,13 @@ try {
   console.warn('⚠️  WhatsApp not loaded:', e.message);
 }
 
+// License background verification (startup + every 24h)
+try {
+  require('./modules/license/license.service').startLicenseVerificationCron();
+} catch (e) {
+  console.warn('⚠️  License cron not loaded:', e.message);
+}
+
 app.listen(env.PORT, () => {
   console.log(`🚀 AgriBill Pro server running on port ${env.PORT}`);
 });
