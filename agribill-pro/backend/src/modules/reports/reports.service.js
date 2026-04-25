@@ -50,14 +50,19 @@ const getHSNSummary = (month) => {
            COALESCE(SUM(bi.taxable_amount), 0) as taxable_value,
            COALESCE(SUM(bi.cgst), 0)           as cgst,
            COALESCE(SUM(bi.sgst), 0)           as sgst,
-           COALESCE(SUM(bi.igst), 0)           as igst
+           COALESCE(SUM(bi.igst), 0)           as igst,
+           (SELECT bi2.product_name FROM bill_items bi2
+            JOIN bills b2 ON bi2.bill_id = b2.id
+            WHERE bi2.hsn_code = bi.hsn_code AND bi2.gst_rate = bi.gst_rate
+            AND strftime('%Y-%m', b2.bill_date) = ?
+            LIMIT 1) as description
     FROM bill_items bi
     JOIN bills b ON bi.bill_id = b.id
     WHERE strftime('%Y-%m', b.bill_date) = ?
     AND b.payment_status != 'CANCELLED'
     GROUP BY bi.hsn_code, bi.gst_rate
     ORDER BY taxable_value DESC
-  `).all(month);
+  `).all(month, month);
 };
 
 const getTaxByRate = (month) => {
