@@ -25,7 +25,7 @@ const createBillSchema = z.object({
   bill_number: z.string().optional(),
   discount_amount: z.number().int().min(0).optional().default(0),
   discount_percent: z.number().min(0).max(100).optional().default(0),
-  paid_amount: z.number().int().min(0).optional(),
+  paid_amount: z.number().int().min(0).optional().nullable(),
   payment_method: z.enum(['CASH', 'UPI', 'CARD', 'CHEQUE', 'CREDIT']).default('CASH'),
   notes: z.string().optional(),
   items: z.array(billItemSchema).min(1),

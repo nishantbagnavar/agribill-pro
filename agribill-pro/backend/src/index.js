@@ -70,13 +70,11 @@ app.use('/api/printer',    licenseGate, require('./modules/printer/printer.route
 app.use('/api/backup',     licenseGate, require('./modules/backup/backup.routes'));
 app.use('/api/updater',    licenseGate, require('./modules/updater/updater.routes'));
 
-// Serve React build in production
-if (env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../public')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/index.html'));
-  });
-}
+// Serve React build — always, so port 5000 works in all modes
+app.use(express.static(path.join(__dirname, '../public')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public/index.html'));
+});
 
 // Sentry error handler (must be before custom error handler)
 if (process.env.SENTRY_DSN) {
