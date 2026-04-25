@@ -51,21 +51,24 @@ app.get('/update-manifest.json', (req, res) => {
 });
 
 // Routes — imported lazily so DB is ready
-app.use('/api/auth', require('./modules/auth/auth.routes'));
-app.use('/api/shop', require('./modules/shop/shop.routes'));
-app.use('/api/categories', require('./modules/categories/categories.routes'));
-app.use('/api/products', require('./modules/products/products.routes'));
-app.use('/api/inventory', require('./modules/inventory/inventory.routes'));
-app.use('/api/customers', require('./modules/customers/customers.routes'));
-app.use('/api/billing', require('./modules/billing/billing.routes'));
-app.use('/api/dashboard', require('./modules/dashboard/dashboard.routes'));
-app.use('/api/reminders', require('./modules/reminders/reminders.routes'));
-app.use('/api/whatsapp', require('./modules/whatsapp/whatsapp.routes'));
-app.use('/api/reports', require('./modules/reports/reports.routes'));
-app.use('/api/printer', require('./modules/printer/printer.routes'));
-app.use('/api/backup', require('./modules/backup/backup.routes'));
+app.use('/api/auth',    require('./modules/auth/auth.routes'));
 app.use('/api/license', require('./modules/license/license.routes'));
-app.use('/api/updater', require('./modules/updater/updater.routes'));
+
+// All routes below require a valid license in production
+const { licenseGate } = require('./modules/license/license.gate');
+app.use('/api/shop',       licenseGate, require('./modules/shop/shop.routes'));
+app.use('/api/categories', licenseGate, require('./modules/categories/categories.routes'));
+app.use('/api/products',   licenseGate, require('./modules/products/products.routes'));
+app.use('/api/inventory',  licenseGate, require('./modules/inventory/inventory.routes'));
+app.use('/api/customers',  licenseGate, require('./modules/customers/customers.routes'));
+app.use('/api/billing',    licenseGate, require('./modules/billing/billing.routes'));
+app.use('/api/dashboard',  licenseGate, require('./modules/dashboard/dashboard.routes'));
+app.use('/api/reminders',  licenseGate, require('./modules/reminders/reminders.routes'));
+app.use('/api/whatsapp',   licenseGate, require('./modules/whatsapp/whatsapp.routes'));
+app.use('/api/reports',    licenseGate, require('./modules/reports/reports.routes'));
+app.use('/api/printer',    licenseGate, require('./modules/printer/printer.routes'));
+app.use('/api/backup',     licenseGate, require('./modules/backup/backup.routes'));
+app.use('/api/updater',    licenseGate, require('./modules/updater/updater.routes'));
 
 // Serve React build in production
 if (env.NODE_ENV === 'production') {

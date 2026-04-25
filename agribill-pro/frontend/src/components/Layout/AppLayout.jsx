@@ -6,6 +6,7 @@ import Topbar from './Topbar.jsx';
 import NotificationPanel from './NotificationPanel.jsx';
 import UpdateBanner from '../UpdateBanner.jsx';
 import ForceUpdateScreen from '../ForceUpdateScreen.jsx';
+import LicenseGate from '../LicenseGate.jsx';
 import { whatsappApi } from '../../api/whatsapp.api.js';
 import { authApi } from '../../api/auth.api.js';
 import { shopApi } from '../../api/shop.api.js';
@@ -69,6 +70,7 @@ export default function AppLayout() {
   }, [sidebarWidth, isMobile]);
 
   return (
+    <LicenseGate>
     <div className="min-h-screen" style={{ background: 'var(--surface-page)' }}>
       {/* Mobile overlay */}
       {mobileOpen && (
@@ -116,5 +118,6 @@ export default function AppLayout() {
       <NotificationPanel />
       <ForceUpdateScreen />
     </div>
+    </LicenseGate>
   );
 }
