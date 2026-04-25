@@ -171,7 +171,7 @@ export default function Dashboard() {
           </p>
         </div>
         <Link
-          to="/billing/new"
+          to="/billing"
           className="h-9 px-4 rounded-lg font-display font-600 text-sm text-white flex items-center gap-1.5 transition-all hover:opacity-90"
           style={{ background: 'var(--primary-dark)' }}
         >
@@ -321,7 +321,7 @@ export default function Dashboard() {
             <div className="h-48 flex flex-col items-center justify-center gap-2">
               <BarChart2 size={32} style={{ color: 'var(--gray-300)' }} />
               <p className="font-body text-sm" style={{ color: 'var(--gray-400)' }}>{t('dashboard.noSalesData')}</p>
-              <Link to="/billing/new" className="text-xs font-600" style={{ color: 'var(--primary)' }}>
+              <Link to="/billing" className="text-xs font-600" style={{ color: 'var(--primary)' }}>
                 {t('dashboard.createFirstBill')}
               </Link>
             </div>
@@ -489,7 +489,7 @@ export default function Dashboard() {
             <div className="h-48 flex flex-col items-center justify-center gap-2">
               <FileText size={32} style={{ color: 'var(--gray-300)' }} />
               <p className="font-body text-sm" style={{ color: 'var(--gray-400)' }}>{t('dashboard.noBillsToday')}</p>
-              <Link to="/billing/new" className="text-xs font-600" style={{ color: 'var(--primary)' }}>
+              <Link to="/billing" className="text-xs font-600" style={{ color: 'var(--primary)' }}>
                 {t('dashboard.createFirstBillLink')}
               </Link>
             </div>
