@@ -11,6 +11,16 @@ function getCachedLicense() {
   return sqlite.prepare('SELECT * FROM license_cache ORDER BY id DESC LIMIT 1').get();
 }
 
+// Persist the license key even when cache is wiped (for auto-recovery)
+function saveLastKnownKey(key) {
+  sqlite.prepare(`INSERT INTO app_config (key, value) VALUES ('last_license_key', ?)
+    ON CONFLICT(key) DO UPDATE SET value = excluded.value`).run(key);
+}
+function getLastKnownKey() {
+  const row = sqlite.prepare(`SELECT value FROM app_config WHERE key = 'last_license_key'`).get();
+  return row?.value || null;
+}
+
 function isLicenseValid() {
   const cached = getCachedLicense();
   if (!cached) return false;
@@ -59,6 +69,7 @@ async function activateLicense(licenseKey) {
 
   const featuresJson = typeof shop.features === 'string' ? shop.features : JSON.stringify(shop.features || {});
 
+  saveLastKnownKey(licenseKey); // persist key for auto-recovery after suspension
   sqlite.prepare('DELETE FROM license_cache').run();
   sqlite.prepare(`
     INSERT INTO license_cache (license_key, hwid, plan, customer_name, expires_at, features, grace_token, activated_at, last_verified_at)
@@ -169,13 +180,25 @@ function getLicenseStatus() {
   };
 }
 
-// Runs on startup + every 5 min — syncs status/plan/expiry/features from Supabase immediately
+// Runs on startup + every 60s — syncs status/plan/expiry/features from Supabase
 async function backgroundVerify() {
-  const cached = getCachedLicense();
-  if (!cached) return;
-
   const supabase = getSupabaseClient();
   if (!supabase) return;
+
+  // Auto-recovery: if cache is empty but we have a stored key, try to re-activate silently
+  const cached = getCachedLicense();
+  if (!cached) {
+    const lastKey = getLastKnownKey();
+    if (lastKey) {
+      try {
+        await activateLicense(lastKey);
+        console.log('✅ License auto-recovered after suspension/expiry');
+      } catch (e) {
+        // Still suspended/expired — stay locked, try again next cycle
+      }
+    }
+    return;
+  }
 
   try {
     const { data: shop, error } = await supabase
