@@ -319,74 +319,86 @@ function BackupSettings() {
   const createSnapshot = useCreateSnapshot();
   const [showWizard, setShowWizard] = useState(false);
 
-  const handleBackupNow = () => createSnapshot.mutate('manual');
+  const handleBackupNow = () => {
+    createSnapshot.mutate('manual', {
+      onSuccess: () => toast.success('Backup created successfully'),
+      onError: (e) => toast.error(e.response?.data?.error || 'Backup failed'),
+    });
+  };
 
   const lastBackup = status?.last_backup
     ? new Date(status.last_backup).toLocaleString('en-IN')
     : 'Never';
-
   const dbSizeMB = status?.db_size_bytes
     ? (status.db_size_bytes / (1024 * 1024)).toFixed(2)
     : '—';
 
   return (
     <div className="space-y-5">
-      {/* Status card */}
+
+      {/* Local Backup — always active */}
       <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
-        <h3 className="font-display font-600 text-sm text-gray-700 mb-4">Backup Status</h3>
-        {isLoading ? (
-          <div className="flex justify-center py-4"><Loader2 size={20} className="animate-spin text-gray-400" /></div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4">
-            <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-              <p className="text-xs text-gray-500 mb-1">R2 Configured</p>
-              <div className="flex items-center gap-2">
-                <span className={`w-2.5 h-2.5 rounded-full ${status?.configured ? 'bg-green-500' : 'bg-red-400'}`} />
-                <span className="text-sm font-600 text-gray-800">{status?.configured ? 'Connected' : 'Not configured'}</span>
-              </div>
-            </div>
-            <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-              <p className="text-xs text-gray-500 mb-1">Last Backup</p>
-              <div className="flex items-center gap-2">
-                <Clock size={13} className="text-gray-400" />
-                <span className="text-sm font-600 text-gray-800">{lastBackup}</span>
-              </div>
-            </div>
-            <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-              <p className="text-xs text-gray-500 mb-1">Database Size</p>
-              <div className="flex items-center gap-2">
-                <Database size={13} className="text-gray-400" />
-                <span className="text-sm font-600 text-gray-800">{dbSizeMB} MB</span>
-              </div>
-            </div>
-            <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
-              <p className="text-xs text-gray-500 mb-1">Auto Backup</p>
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
-                <span className="text-sm font-600 text-gray-800">Daily at 2:00 AM</span>
-              </div>
+        <h3 className="font-display font-600 text-sm text-gray-700 mb-4">Local Backup</h3>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 rounded-xl bg-green-50 border border-green-100">
+            <p className="text-xs text-gray-500 mb-1">Status</p>
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-green-500" />
+              <span className="text-sm font-600 text-green-800">Always Active</span>
             </div>
           </div>
-        )}
-      </div>
-
-      {!status?.configured && (
-        <div className="flex items-start gap-3 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-          <AlertTriangle size={16} className="text-yellow-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <p className="text-sm font-600 text-yellow-800">R2 not configured</p>
-            <p className="text-xs text-yellow-700 mt-0.5">Add <code>R2_ENDPOINT</code>, <code>R2_BUCKET</code>, <code>R2_ACCESS_KEY_ID</code>, and <code>R2_SECRET_ACCESS_KEY</code> to your <code>.env</code> file. Create a free R2 bucket at cloudflare.com.</p>
+          <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+            <p className="text-xs text-gray-500 mb-1">Local Copies</p>
+            <div className="flex items-center gap-2">
+              <Database size={13} className="text-gray-400" />
+              <span className="text-sm font-600 text-gray-800">{status?.local_backup_count ?? '—'} files (last 30 kept)</span>
+            </div>
+          </div>
+          <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+            <p className="text-xs text-gray-500 mb-1">Last Backup</p>
+            <div className="flex items-center gap-2">
+              <Clock size={13} className="text-gray-400" />
+              <span className="text-sm font-600 text-gray-800">{lastBackup}</span>
+            </div>
+          </div>
+          <div className="p-4 rounded-xl bg-gray-50 border border-gray-100">
+            <p className="text-xs text-gray-500 mb-1">Database Size</p>
+            <div className="flex items-center gap-2">
+              <Database size={13} className="text-gray-400" />
+              <span className="text-sm font-600 text-gray-800">{dbSizeMB} MB</span>
+            </div>
           </div>
         </div>
-      )}
+        {status?.local_backup_dir && (
+          <p className="text-[11px] text-gray-400 mt-3">
+            Saved to: <code className="bg-gray-100 px-1 rounded">{status.local_backup_dir}</code>
+          </p>
+        )}
+        <p className="text-[11px] text-gray-400 mt-1">Backup runs on every startup + daily at 2:00 AM automatically.</p>
+      </div>
 
-      {/* Actions */}
-      <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm space-y-3">
-        <h3 className="font-display font-600 text-sm text-gray-700">Actions</h3>
+      {/* Cloud Backup */}
+      <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+        <h3 className="font-display font-600 text-sm text-gray-700 mb-4">Cloud Backup (Cloudflare R2)</h3>
+        <div className="flex items-center gap-3 p-3 rounded-xl border mb-4"
+          style={{ background: status?.cloud_configured ? '#F0FDF4' : '#FFFBEB', borderColor: status?.cloud_configured ? '#BBF7D0' : '#FDE68A' }}>
+          <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${status?.cloud_configured ? 'bg-green-500' : 'bg-yellow-400'}`} />
+          <div>
+            <p className="text-sm font-600" style={{ color: status?.cloud_configured ? '#166534' : '#92400E' }}>
+              {status?.cloud_configured ? 'Connected to Cloudflare R2' : 'Not configured (optional)'}
+            </p>
+            {!status?.cloud_configured && (
+              <p className="text-xs text-yellow-700 mt-0.5">
+                Add <code>R2_ENDPOINT</code>, <code>R2_BUCKET</code>, <code>R2_ACCESS_KEY_ID</code>, <code>R2_SECRET_ACCESS_KEY</code> to <code>.env</code> to enable cloud backup.
+              </p>
+            )}
+          </div>
+        </div>
+
         <div className="flex gap-3">
           <button
             onClick={handleBackupNow}
-            disabled={createSnapshot.isPending || !status?.configured}
+            disabled={createSnapshot.isPending}
             className="flex-1 flex items-center justify-center gap-2 h-10 rounded-lg bg-[var(--primary)] text-white text-sm font-600 hover:bg-[var(--primary-dark)] disabled:opacity-50"
           >
             {createSnapshot.isPending ? <Loader2 size={15} className="animate-spin" /> : <CloudUpload size={15} />}
@@ -394,14 +406,14 @@ function BackupSettings() {
           </button>
           <button
             onClick={() => setShowWizard(true)}
-            disabled={!status?.configured}
+            disabled={!status?.cloud_configured}
             className="flex-1 flex items-center justify-center gap-2 h-10 rounded-lg border border-gray-300 text-sm font-600 text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            title={!status?.cloud_configured ? 'Configure R2 to enable cloud restore' : ''}
           >
             <Database size={15} />
-            Restore from Backup
+            Restore from Cloud
           </button>
         </div>
-        <p className="text-[10px] text-gray-400">Backups are stored in Cloudflare R2 and retained for 72 hours. The previous 50 snapshots are listed in the restore wizard.</p>
       </div>
 
       {showWizard && <RestoreWizard onClose={() => setShowWizard(false)} />}

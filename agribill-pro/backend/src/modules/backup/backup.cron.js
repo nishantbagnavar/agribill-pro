@@ -1,18 +1,27 @@
 const cron = require('node-cron');
-const { createSnapshot, getStatus } = require('./backup.service');
+const { createSnapshot, createLocalBackup } = require('./backup.service');
 
 function startBackupCron() {
-  // daily at 2:00 AM
-  cron.schedule('0 2 * * *', async () => {
-    const status = getStatus();
-    if (!status.configured || !status.auto_backup) return;
+  // Startup backup — always do a local backup when server starts
+  setTimeout(async () => {
     try {
-      await createSnapshot('auto');
+      await createLocalBackup('startup');
+    } catch (e) {
+      console.warn('⚠️  Startup backup skipped:', e.message);
+    }
+  }, 10000); // 10s after start so DB is fully ready
+
+  // Daily at 2:00 AM — local + cloud (if configured)
+  cron.schedule('0 2 * * *', async () => {
+    try {
+      await createSnapshot('daily');
       console.log('✅ Daily backup completed');
     } catch (e) {
       console.error('❌ Daily backup failed:', e.message);
     }
   });
+
+  console.log('✅ Backup cron started (startup + daily 2AM)');
 }
 
 module.exports = { startBackupCron };
