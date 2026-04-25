@@ -36,7 +36,7 @@ export function useCreateBill() {
       qc.invalidateQueries({ queryKey: ['products'] });
       qc.invalidateQueries({ queryKey: ['next-bill-number'] });
     },
-    onError: (err) => toast.error(err.response?.data?.message || 'Failed to create bill'),
+    onError: (err) => toast.error(err.response?.data?.error || err.response?.data?.message || 'Failed to create bill'),
   });
 }
 
