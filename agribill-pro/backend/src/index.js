@@ -122,6 +122,13 @@ try {
   console.warn('⚠️  License cron not loaded:', e.message);
 }
 
+// Run data seed migrations (idempotent — each seed runs exactly once)
+try {
+  require('./db/seed-data').applySeedMigrations();
+} catch (e) {
+  console.warn('⚠️  Seed migrations skipped:', e.message);
+}
+
 app.listen(env.PORT, () => {
   console.log(`🚀 AgriBill Pro server running on port ${env.PORT}`);
 });

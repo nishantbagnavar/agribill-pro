@@ -7,9 +7,9 @@ const AdmZip = require('adm-zip');
 const semver = require('semver');
 const { APP_VERSION } = require('../../config/version');
 
-const APP_ROOT = path.resolve(__dirname, '../../../../../');
-const UPDATE_DIR = path.join(APP_ROOT, 'agribill-pro', 'data', 'update');
-const DEFAULT_MANIFEST_PATH = path.join(APP_ROOT, 'agribill-pro', 'update-manifest.json');
+const APP_ROOT = path.resolve(__dirname, '../../../../');
+const UPDATE_DIR = path.join(APP_ROOT, 'data', 'update');
+const DEFAULT_MANIFEST_PATH = path.join(APP_ROOT, 'update-manifest.json');
 
 function getManifest() {
   const manifestUrl = process.env.UPDATE_MANIFEST_URL;
@@ -111,7 +111,7 @@ function applyUpdate(zipPath, expectedSha256) {
     }
   }
 
-  const appDir = path.join(APP_ROOT, 'agribill-pro');
+  const appDir = APP_ROOT;
   const zip = new AdmZip(zipPath);
   zip.extractAllTo(appDir, true);
 

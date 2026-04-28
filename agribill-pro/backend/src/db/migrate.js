@@ -2,8 +2,8 @@ const Database = require('better-sqlite3');
 const path = require('path');
 require('dotenv').config({ path: path.resolve(__dirname, '../../../.env') });
 
-const backendRoot = path.resolve(__dirname, '../..');
-const dbPath = path.resolve(backendRoot, process.env.DB_PATH || './data/agribill.db');
+const appRoot = path.resolve(__dirname, '../../..');
+const dbPath = path.resolve(appRoot, process.env.DB_PATH || './data/agribill.db');
 
 // Ensure data directory exists
 const fs = require('fs');
